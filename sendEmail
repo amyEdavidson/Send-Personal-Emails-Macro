@@ -1,0 +1,49 @@
+Private Declare PtrSafe Function ShellExecute Lib "shell32.dll" Alias "ShellExecuteA" ( _
+                         ByVal hwnd As LongPtr, ByVal lpOperation As String, _
+                         ByVal lpFile As String, ByVal lpParameters As String, ByVal lpDirectory As String, _
+                         ByVal nShowCmd As Long) As LongPtr
+                         
+
+Sub SendEMail()
+
+    Dim xEmail As String
+    Dim xSubj As String
+    Dim xMsg As String
+    Dim xURL As String
+    Dim i As Integer
+    Dim k As Double
+    Dim xCell As Range
+    Dim xRg As Range
+    Dim xTxt As String
+    On Error Resume Next
+    xTxt = ActiveWindow.RangeSelection.Address
+    Set xRg = Application.InputBox("Please select the data range:", "Kutools for Excel", xTxt, , , , , 8)
+    If xRg Is Nothing Then Exit Sub
+
+    For i = 1 To xRg.Rows.Count
+'       Get the email address
+        xEmail = xRg.Cells(i, 4)
+'       Message subject
+        xSubj = "Your Secret Santa Information"
+'       Compose the message
+        xMsg = ""
+        xMsg = xMsg & "Hello " & xRg.Cells(i, 1) & "," & vbCrLf & vbCrLf
+        xMsg = xMsg & "This is the person you have for Secret Santa: " & xRg.Cells(i, 2) & vbCrLf & vbCrLf
+        xMsg = xMsg & "Here is their mailing address: " & xRg.Cells(i, 3) & vbCrLf & vbCrLf
+        xMsg = xMsg & "Have fun!"
+'       Replace spaces with %20 (hex)
+        xSubj = Application.WorksheetFunction.Substitute(xSubj, " ", "%20")
+        xMsg = Application.WorksheetFunction.Substitute(xMsg, " ", "%20")
+'       Replace carriage returns with %0D%0A (hex)
+        xMsg = Application.WorksheetFunction.Substitute(xMsg, vbCrLf, "%0D%0A")
+'       Create the URL
+        xURL = "mailto:" & xEmail & "?subject=" & xSubj & "&body=" & xMsg
+'       Execute the URL (start the email client)
+        ShellExecute 0&, vbNullString, xURL, vbNullString, vbNullString, vbNormalFocus
+'       Wait two seconds before sending keystrokes
+        Application.Wait (Now + TimeValue("0:00:02"))
+        Application.SendKeys "%s"
+    Next
+End Sub
+
+
